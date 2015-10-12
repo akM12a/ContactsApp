@@ -47,8 +47,6 @@ public class ContactsFragment extends BaseAppFragment {
         setHasOptionsMenu(true);
 
         mContactsStore = new ContactsStore(getContext());
-        //mContactsStore.generateRandomData();
-        //mContactsStore.clear();
     }
 
     @Override
@@ -114,19 +112,7 @@ public class ContactsFragment extends BaseAppFragment {
 
         mSearchView = (SearchView) searchMenuItem.getActionView();
         mSearchView.setQueryHint(getString(R.string.search_hint));
-        mSearchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
-            @Override
-            public boolean onQueryTextSubmit(String s) {
-                updateData(s);
-                return true;
-            }
-
-            @Override
-            public boolean onQueryTextChange(String s) {
-                updateData(s);
-                return true;
-            }
-        });
+        setSearchViewTextChangeListener();
 
         if (mSearchQuery != null) {
             String query = mSearchQuery;
@@ -152,6 +138,12 @@ public class ContactsFragment extends BaseAppFragment {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        setSearchViewTextChangeListener();
     }
 
     @Override
@@ -198,6 +190,24 @@ public class ContactsFragment extends BaseAppFragment {
         Contact contact = mAdapter.getSelectedContact();
         if (contact != null) {
             mNavigationListener.navigateEditContact(contact);
+        }
+    }
+
+    private void setSearchViewTextChangeListener() {
+        if (mSearchView != null) {
+            mSearchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+                @Override
+                public boolean onQueryTextSubmit(String s) {
+                    updateData(s);
+                    return true;
+                }
+
+                @Override
+                public boolean onQueryTextChange(String s) {
+                    updateData(s);
+                    return true;
+                }
+            });
         }
     }
 
