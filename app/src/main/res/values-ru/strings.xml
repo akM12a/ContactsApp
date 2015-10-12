@@ -1,0 +1,23 @@
+<resources>
+    <string name="app_name">Контакты</string>
+    <string name="contact_name_hint">Имя</string>
+    <string name="contact_phone_hint">Телефон</string>
+    <string name="search_hint">Поиск</string>
+
+    <string name="action_delete">Удалить</string>
+    <string name="action_edit">Редактировать</string>
+    <string name="action_search">Поиск</string>
+
+    <string name="you_have_no_contacts_yet">У вас нет ни одного контакта</string>
+    <string name="no_results">Ничего не найдено</string>
+    <string name="delete_item_message">Вы действительно хотите удалить контакт?</string>
+    <string name="delete_item_header">Удалить контакт</string>
+
+    <string name="fragment_contacts_title">Контакты</string>
+    <string name="fragment_add_contact_title">Добавить контакт</string>
+    <string name="fragment_edit_contact_title">Редактировать контакт</string>
+
+    <string name="phone_type_mobile">Мобильный</string>
+    <string name="phone_type_work">Рабочий</string>
+    <string name="phone_type_home">Домашний</string>
+</resources>

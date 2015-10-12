@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="color_action_bar">#ff467fd7</color>
+    <color name="color_status_bar">#ff3865a8</color>
+    <color name="color_selector_row">#33467fd7</color>
+</resources>
