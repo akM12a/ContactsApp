@@ -44,7 +44,12 @@ public class ContactPropertiesFragment extends BaseAppFragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
-        mContactsStore = new ContactsStore(getContext());
+        mContactsStore = connectToContactsStore(getContext(), new DatabaseErrorListener() {
+            @Override
+            public void onError(Exception e) {
+                mNavigationListener.goBack();
+            }
+        });
     }
 
     @Override
@@ -65,12 +70,23 @@ public class ContactPropertiesFragment extends BaseAppFragment {
 
         Bundle args = getArguments();
         if (args != null) {
-            String uuid = args.getString(ARG_CONTACT_UUID);
+            final String uuid = args.getString(ARG_CONTACT_UUID);
             if (uuid != null) {
-                mContact = mContactsStore.getContact(uuid);
-                mNameEdit.setText(mContact.getName());
-                mPhoneEdit.setText(mContact.getPhone());
-                mPhoneTypeSpinner.setSelection(mContact.getType());
+                if (mContactsStore == null) return;
+                makeDatabaseQuery(new DatabaseQuery<Contact>() {
+                    @Override
+                    public Contact query() throws Exception {
+                        return mContactsStore.getContact(uuid);
+                    }
+                }, new DatabaseResultListener<Contact>() {
+                    @Override
+                    public void onComplete(Contact result) {
+                        mContact = result;
+                        mNameEdit.setText(mContact.getName());
+                        mPhoneEdit.setText(mContact.getPhone());
+                        mPhoneTypeSpinner.setSelection(mContact.getType());
+                    }
+                }, null);
             }
         }
 
@@ -105,14 +121,37 @@ public class ContactPropertiesFragment extends BaseAppFragment {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_done:
+                if (mContactsStore == null) return true;
                 if (mContact == null) {
-                    mContactsStore.addContact(mNameEdit.getText().toString(), mPhoneEdit.getText().toString(),
-                            mPhoneTypeSpinner.getSelectedItemPosition());
+                    makeDatabaseQuery(new DatabaseQuery<Void>() {
+                        @Override
+                        public Void query() throws Exception {
+                            mContactsStore.addContact(mNameEdit.getText().toString(), mPhoneEdit.getText().toString(),
+                                    mPhoneTypeSpinner.getSelectedItemPosition());
+                            return null;
+                        }
+                    }, new DatabaseResultListener<Void>() {
+                        @Override
+                        public void onComplete(Void result) {
+                            mNavigationListener.goBack();
+                        }
+                    }, null);
+
                 } else {
-                    mContactsStore.updateContact(mContact.getUuid(), mNameEdit.getText().toString(),
-                            mPhoneEdit.getText().toString(), mPhoneTypeSpinner.getSelectedItemPosition());
+                    makeDatabaseQuery(new DatabaseQuery<Void>() {
+                        @Override
+                        public Void query() throws Exception {
+                            mContactsStore.updateContact(mContact.getUuid(), mNameEdit.getText().toString(),
+                                    mPhoneEdit.getText().toString(), mPhoneTypeSpinner.getSelectedItemPosition());
+                            return null;
+                        }
+                    }, new DatabaseResultListener<Void>() {
+                        @Override
+                        public void onComplete(Void result) {
+                            mNavigationListener.goBack();
+                        }
+                    }, null);
                 }
-                mNavigationListener.goBack();
                 return true;
         }
 
@@ -121,7 +160,7 @@ public class ContactPropertiesFragment extends BaseAppFragment {
 
     @Override
     public void onDestroy() {
-        mContactsStore.close();
+        disconnectFromContactsStore(mContactsStore, null);
         super.onDestroy();
     }
 

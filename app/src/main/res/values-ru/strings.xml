@@ -10,6 +10,9 @@
 
     <string name="you_have_no_contacts_yet">У вас нет ни одного контакта</string>
     <string name="no_results">Ничего не найдено</string>
+    <string name="retry">Повторить</string>
+    <string name="database_error_header">Ошибка базы данных</string>
+    <string name="database_connection_error">Ошибка при подключении к базе данных</string>
     <string name="delete_item_message">Вы действительно хотите удалить контакт?</string>
     <string name="delete_item_header">Удалить контакт</string>
 

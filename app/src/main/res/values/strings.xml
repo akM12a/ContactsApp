@@ -10,6 +10,9 @@
 
     <string name="you_have_no_contacts_yet">You have no contacts yet</string>
     <string name="no_results">No results</string>
+    <string name="retry">Retry</string>
+    <string name="database_error_header">Database error</string>
+    <string name="database_connection_error">Can\'t connect to database</string>
     <string name="delete_item_message">Are you sure you want to delete this contact?</string>
     <string name="delete_item_header">Delete contact</string>
 

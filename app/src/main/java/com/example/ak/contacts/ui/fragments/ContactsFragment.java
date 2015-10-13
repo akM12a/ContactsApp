@@ -22,6 +22,8 @@ import com.example.ak.contacts.db.model.Contact;
 import com.example.ak.contacts.ui.BaseAppFragment;
 import com.example.ak.contacts.ui.adapters.ContactListAdapter;
 
+import java.util.List;
+
 /**
  * Fragment for display contact list
  */
@@ -46,7 +48,12 @@ public class ContactsFragment extends BaseAppFragment {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
 
-        mContactsStore = new ContactsStore(getContext());
+        mContactsStore = connectToContactsStore(getContext(), new DatabaseErrorListener() {
+            @Override
+            public void onError(Exception e) {
+                mNavigationListener.goBack();
+            }
+        });
     }
 
     @Override
@@ -114,6 +121,7 @@ public class ContactsFragment extends BaseAppFragment {
         mSearchView.setQueryHint(getString(R.string.search_hint));
         setSearchViewTextChangeListener();
 
+        updateNoContactsMessage();
         if (mSearchQuery != null) {
             String query = mSearchQuery;
             searchMenuItem.expandActionView();
@@ -154,24 +162,46 @@ public class ContactsFragment extends BaseAppFragment {
 
     @Override
     public void onDestroy() {
-        mContactsStore.close();
+        disconnectFromContactsStore(mContactsStore, null);
         super.onDestroy();
     }
 
     private void updateData() {
-        mAdapter.setContacts(mContactsStore.getContacts());
-        updateContactActionsVisibility();
-        mDataWithFilter = false;
-        updateNoContactsMessage();
-        mSearchQuery = null;
+        if (mContactsStore == null) return;
+        makeDatabaseQuery(new DatabaseQuery<List<Contact>>() {
+            @Override
+            public List<Contact> query() throws Exception {
+                return mContactsStore.getContacts();
+            }
+        }, new DatabaseResultListener<List<Contact>>() {
+            @Override
+            public void onComplete(List<Contact> result) {
+                mAdapter.setContacts(result);
+                updateContactActionsVisibility();
+                mDataWithFilter = false;
+                updateNoContactsMessage();
+                mSearchQuery = null;
+            }
+        }, null);
     }
 
-    private void updateData(String filter) {
+    private void updateData(final String filter) {
         if ((filter != null) && (filter.trim().length() > 0)) {
-            mAdapter.setContacts(mContactsStore.getContacts(filter));
-            updateContactActionsVisibility();
-            mDataWithFilter = true;
-            updateNoContactsMessage();
+            if (mContactsStore == null) return;
+            makeDatabaseQuery(new DatabaseQuery<List<Contact>>() {
+                @Override
+                public List<Contact> query() throws Exception {
+                    return mContactsStore.getContacts(filter);
+                }
+            }, new DatabaseResultListener<List<Contact>>() {
+                @Override
+                public void onComplete(List<Contact> result) {
+                    mAdapter.setContacts(result);
+                    updateContactActionsVisibility();
+                    mDataWithFilter = true;
+                    updateNoContactsMessage();
+                }
+            }, null);
         }
         else {
             if (mDataWithFilter) {
@@ -217,11 +247,22 @@ public class ContactsFragment extends BaseAppFragment {
                 .setMessage(R.string.delete_item_message)
                 .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int arg1) {
-                        Contact contact = mAdapter.getSelectedContact();
+                        final Contact contact = mAdapter.getSelectedContact();
                         if (contact != null) {
-                            mAdapter.deleteSelectedItem();
-                            mContactsStore.deleteContact(contact.getUuid());
-                            updateNoContactsMessage();
+                            if (mContactsStore == null) return;
+                            makeDatabaseQuery(new DatabaseQuery<Void>() {
+                                @Override
+                                public Void query() throws Exception {
+                                    mContactsStore.deleteContact(contact.getUuid());
+                                    return null;
+                                }
+                            }, new DatabaseResultListener<Void>() {
+                                @Override
+                                public void onComplete(Void result) {
+                                    mAdapter.deleteSelectedItem();
+                                    updateNoContactsMessage();
+                                }
+                            }, null);
                         }
                     }
                 })
